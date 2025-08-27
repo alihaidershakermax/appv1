@@ -9,20 +9,16 @@ on:
 jobs:
   android_build:
     runs-on: ubuntu-latest
-    env:
-      FLUTTER_ROOT: ${{ github.workspace }}/flutter
-      PATH: ${{ github.workspace }}/flutter/bin:${{ github.workspace }}/flutter/bin/cache/dart-sdk/bin:${PATH}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Remove old Flutter
-        run: sudo rm -rf /opt/hostedtoolcache/flutter
-
-      - name: Install Flutter 3.27.3
-        run: |
-          wget https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.27.3-stable.tar.xz
-          tar xf flutter_linux_3.27.3-stable.tar.xz -C ${{ github.workspace }}
+      - name: Setup Flutter 3.27.3
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.3'
+          channel: 'stable'
+          cache: true
 
       - name: Verify Flutter & Dart versions
         run: |
@@ -51,21 +47,17 @@ jobs:
 
   ios_build:
     runs-on: macos-latest
-    if: github.event_name != 'pull_request' # خيار: لا يبني iOS على PR
-    env:
-      FLUTTER_ROOT: ${{ github.workspace }}/flutter
-      PATH: ${{ github.workspace }}/flutter/bin:${{ github.workspace }}/flutter/bin/cache/dart-sdk/bin:${PATH}}
+    if: github.event_name != 'pull_request'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Remove old Flutter
-        run: sudo rm -rf /opt/hostedtoolcache/flutter
-
-      - name: Install Flutter 3.27.3
-        run: |
-          wget https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_3.27.3-stable.zip
-          unzip flutter_macos_3.27.3-stable.zip -d ${{ github.workspace }}
+      - name: Setup Flutter 3.27.3
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.3'
+          channel: 'stable'
+          cache: true
 
       - name: Verify Flutter & Dart versions
         run: |
@@ -82,7 +74,4 @@ jobs:
         run: flutter build ios --release --no-codesign
 
       - name: Upload iOS Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-build
-          path: build/ios/iphoneos/Runner.app
+        uses: actions/upload-artifact@v
