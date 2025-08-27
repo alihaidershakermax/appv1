@@ -89,6 +89,8 @@ enum AttachmentType {
   image,
   pdf,
   document,
+  audio,
+  video,
   other,
 }
 
@@ -96,6 +98,10 @@ extension AttachmentTypeX on AttachmentType {
   static AttachmentType fromMimeType(String mimeType) {
     if (mimeType.startsWith('image/')) {
       return AttachmentType.image;
+    } else if (mimeType.startsWith('audio/')) {
+      return AttachmentType.audio;
+    } else if (mimeType.startsWith('video/')) {
+      return AttachmentType.video;
     } else if (mimeType == 'application/pdf') {
       return AttachmentType.pdf;
     } else if (mimeType.startsWith('application/') ||

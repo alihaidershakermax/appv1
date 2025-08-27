@@ -5,14 +5,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../../core/network/network_info.dart';
-import '../data/datasources/auth_remote_data_source.dart';
-import '../data/repositories/auth_repository_impl.dart';
-import '../domain/repositories/auth_repository.dart';
-import '../domain/usecases/sign_in_with_email.dart';
-import '../domain/usecases/sign_up_with_email.dart';
-import '../domain/usecases/sign_in_with_google.dart';
-import '../domain/usecases/sign_out.dart';
-import '../domain/usecases/get_current_user.dart';
+import '../../data/datasources/auth_remote_data_source.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/repositories/auth_repository.dart';
+import '../../domain/usecases/sign_in_with_email.dart';
+import '../../domain/usecases/sign_up_with_email.dart';
+import '../../domain/usecases/sign_in_with_google.dart';
+import '../../domain/usecases/sign_out.dart';
+import '../../domain/usecases/get_current_user.dart';
 
 // Core Dependencies
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
