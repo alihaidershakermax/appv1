@@ -14,11 +14,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      - name: Setup Flutter (3.27.3 stable)
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.3' # نسخة تدعم Dart >= 3.8.1
+          flutter-version: '3.27.3'
           channel: 'stable'
+          cache: true
+
+      - name: Verify Flutter & Dart versions
+        run: |
+          flutter --version
+          dart --version
 
       - name: Install dependencies
         run: flutter pub get
@@ -31,16 +37,3 @@ jobs:
 
       - name: Build AppBundle (AAB)
         run: flutter build appbundle --release
-
-      # اختياري: بناء iOS إذا تحتاج (يشتغل فقط على macOS runners)
-      # - name: Build iOS
-      #   runs-on: macos-latest
-      #   steps:
-      #     - uses: actions/checkout@v4
-      #     - uses: subosito/flutter-action@v2
-      #       with:
-      #         flutter-version: '3.27.3'
-      #         channel: 'stable'
-      #     - run: flutter pub get
-      #     - run: flutter pub run build_runner build --delete-conflicting-outputs
-      #     - run: flutter build ios --release --no-codesign
