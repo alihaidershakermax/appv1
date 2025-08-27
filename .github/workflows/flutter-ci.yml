@@ -1,4 +1,4 @@
-name: Flutter CI
+name: Flutter CI Multi-Platform
 
 on:
   push:
@@ -7,9 +7,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  android_build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,7 +20,12 @@ jobs:
         run: |
           wget https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.27.3-stable.tar.xz
           tar xf flutter_linux_3.27.3-stable.tar.xz
-          export PATH="$PWD/flutter/bin:$PATH"
+
+      - name: Add Flutter to PATH
+        run: echo "$PWD/flutter/bin" >> $GITHUB_PATH
+
+      - name: Verify Flutter & Dart versions
+        run: |
           flutter --version
           dart --version
 
@@ -37,10 +41,48 @@ jobs:
       - name: Build AppBundle (AAB)
         run: flutter build appbundle --release
 
-      - name: Upload Artifacts
+      - name: Upload Android Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: flutter-build
+          name: android-build
           path: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
+
+  ios_build:
+    runs-on: macos-latest
+    if: github.event_name != 'pull_request' # خيار: لا يبني iOS على PR
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Remove old Flutter
+        run: sudo rm -rf /opt/hostedtoolcache/flutter
+
+      - name: Install Flutter 3.27.3 manually
+        run: |
+          wget https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_3.27.3-stable.zip
+          unzip flutter_macos_3.27.3-stable.zip
+
+      - name: Add Flutter to PATH
+        run: echo "$PWD/flutter/bin" >> $GITHUB_PATH
+
+      - name: Verify Flutter & Dart versions
+        run: |
+          flutter --version
+          dart --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate JSON serialization files
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Build iOS (No code signing)
+        run: flutter build ios --release --no-codesign
+
+      - name: Upload iOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: build/ios/iphoneos/Runner.app
