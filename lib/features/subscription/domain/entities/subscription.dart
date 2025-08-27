@@ -1,3 +1,10 @@
+enum SubscriptionStatus {
+  active,
+  inactive,
+  expired,
+  cancelled,
+}
+
 enum SubscriptionTier {
   free,
   premium,

@@ -1,3 +1,7 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'message.g.dart';
+
 enum MessageType {
   text,
   image,
@@ -11,6 +15,7 @@ enum MessageRole {
   system,
 }
 
+@JsonSerializable()
 class Message {
   final String id;
   final String content;
@@ -53,8 +58,12 @@ class Message {
       error: error ?? this.error,
     );
   }
+
+  factory Message.fromJson(Map<String, dynamic> json) => _$MessageFromJson(json);
+  Map<String, dynamic> toJson() => _$MessageToJson(this);
 }
 
+@JsonSerializable()
 class MessageAttachment {
   final String id;
   final String name;
@@ -71,6 +80,9 @@ class MessageAttachment {
     required this.size,
     required this.type,
   });
+
+  factory MessageAttachment.fromJson(Map<String, dynamic> json) => _$MessageAttachmentFromJson(json);
+  Map<String, dynamic> toJson() => _$MessageAttachmentToJson(this);
 }
 
 enum AttachmentType {
@@ -86,7 +98,7 @@ extension AttachmentTypeX on AttachmentType {
       return AttachmentType.image;
     } else if (mimeType == 'application/pdf') {
       return AttachmentType.pdf;
-    } else if (mimeType.startsWith('application/') || 
+    } else if (mimeType.startsWith('application/') ||
                mimeType.startsWith('text/')) {
       return AttachmentType.document;
     } else {

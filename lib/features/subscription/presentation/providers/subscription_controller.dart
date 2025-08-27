@@ -5,7 +5,7 @@ import '../../../auth/domain/entities/user.dart';
 
 // Subscription State
 class SubscriptionState {
-  final UserSubscription? subscription;
+  final Subscription? subscription;
   final bool isLoading;
   final String? error;
 
@@ -16,7 +16,7 @@ class SubscriptionState {
   });
 
   SubscriptionState copyWith({
-    UserSubscription? subscription,
+    Subscription? subscription,
     bool? isLoading,
     String? error,
   }) {
@@ -36,25 +36,25 @@ class SubscriptionController extends StateNotifier<SubscriptionState> {
 
   Future<void> loadSubscription(String userId) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       // TODO: Implement actual subscription loading
       await Future.delayed(const Duration(seconds: 1)); // Simulate API call
-      
+
       // For now, return a mock subscription
-      final subscription = UserSubscription(
+      final subscription = Subscription(
         id: 'sub_123',
         userId: userId,
-        plan: SubscriptionPlan.free,
-        status: SubscriptionStatus.active,
+        tier: SubscriptionTier.free,
         billingPeriod: BillingPeriod.monthly,
-        currentPeriodStart: DateTime.now().subtract(const Duration(days: 15)),
-        currentPeriodEnd: DateTime.now().add(const Duration(days: 15)),
-        cancelAtPeriodEnd: false,
+        startDate: DateTime.now().subtract(const Duration(days: 15)),
+        endDate: DateTime.now().add(const Duration(days: 15)),
+        isActive: true,
+        price: 0.0,
         createdAt: DateTime.now().subtract(const Duration(days: 30)),
         updatedAt: DateTime.now(),
       );
-      
+
       state = state.copyWith(
         isLoading: false,
         subscription: subscription,
@@ -68,18 +68,18 @@ class SubscriptionController extends StateNotifier<SubscriptionState> {
     }
   }
 
-  Future<void> upgradeSubscription(SubscriptionPlan newPlan) async {
+  Future<void> upgradeSubscription(SubscriptionTier newTier) async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       // TODO: Implement actual subscription upgrade
       await Future.delayed(const Duration(seconds: 2)); // Simulate API call
-      
+
       final updatedSubscription = state.subscription?.copyWith(
-        plan: newPlan,
+        tier: newTier,
         updatedAt: DateTime.now(),
       );
-      
+
       state = state.copyWith(
         isLoading: false,
         subscription: updatedSubscription,
@@ -95,16 +95,17 @@ class SubscriptionController extends StateNotifier<SubscriptionState> {
 
   Future<void> cancelSubscription() async {
     state = state.copyWith(isLoading: true, error: null);
-    
+
     try {
       // TODO: Implement actual subscription cancellation
       await Future.delayed(const Duration(seconds: 1)); // Simulate API call
-      
+
       final updatedSubscription = state.subscription?.copyWith(
-        cancelAtPeriodEnd: true,
+        isCancelled: true,
+        cancelledAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-      
+
       state = state.copyWith(
         isLoading: false,
         subscription: updatedSubscription,
@@ -124,7 +125,7 @@ class SubscriptionController extends StateNotifier<SubscriptionState> {
 }
 
 // Subscription Controller Provider
-final subscriptionControllerProvider = 
+final subscriptionControllerProvider =
     StateNotifierProvider<SubscriptionController, SubscriptionState>(
   (ref) => SubscriptionController(ref),
 );
