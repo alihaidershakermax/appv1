@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../domain/entities/message.dart';
 import '../providers/chat_controller.dart';
 import '../providers/file_upload_providers.dart' as file_providers;
+import '../providers/file_upload_providers.dart' show FileUploadState;
 
 class MessageInput extends ConsumerStatefulWidget {
   final FocusNode focusNode;
@@ -70,7 +71,7 @@ class _MessageInputState extends ConsumerState<MessageInput> {
   Future<void> _pickImage() async {
     final currentConversation = ref.read(currentConversationProvider);
     if (currentConversation != null) {
-      await ref.read(fileUploadControllerProvider.notifier)
+      await ref.read(file_providers.fileUploadControllerProvider.notifier)
           .uploadImageFromGallery(currentConversation.id);
     }
   }
@@ -78,7 +79,7 @@ class _MessageInputState extends ConsumerState<MessageInput> {
   Future<void> _takePhoto() async {
     final currentConversation = ref.read(currentConversationProvider);
     if (currentConversation != null) {
-      await ref.read(fileUploadControllerProvider.notifier)
+      await ref.read(file_providers.fileUploadControllerProvider.notifier)
           .uploadImageFromCamera(currentConversation.id);
     }
   }
@@ -86,7 +87,7 @@ class _MessageInputState extends ConsumerState<MessageInput> {
   Future<void> _pickFile() async {
     final currentConversation = ref.read(currentConversationProvider);
     if (currentConversation != null) {
-      await ref.read(fileUploadControllerProvider.notifier)
+      await ref.read(file_providers.fileUploadControllerProvider.notifier)
           .uploadDocument(currentConversation.id);
     }
   }
@@ -128,14 +129,14 @@ class _MessageInputState extends ConsumerState<MessageInput> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final attachments = ref.watch(file_providers.fileAttachmentsProvider);
-    final uploadState = ref.watch(fileUploadControllerProvider);
+    final uploadState = ref.watch(file_providers.fileUploadControllerProvider);
     final hasContent = _controller.text.trim().isNotEmpty || attachments.isNotEmpty;
 
     // Listen to upload state for error handling
-    ref.listen<FileUploadState>(fileUploadControllerProvider, (previous, next) {
+    ref.listen<FileUploadState>(file_providers.fileUploadControllerProvider, (previous, next) {
       if (next.error != null) {
         _showError(next.error!);
-        ref.read(fileUploadControllerProvider.notifier).clearError();
+        ref.read(file_providers.fileUploadControllerProvider.notifier).clearError();
       }
     });
 
