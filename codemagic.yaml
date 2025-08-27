@@ -1,0 +1,267 @@
+workflows:
+  flutter-ai-chatbot:
+    name: Flutter AI ChatBot
+    max_build_duration: 120
+    instance_type: mac_mini_m1
+    integrations:
+      app_store_connect: codemagic
+    environment:
+      android_signing:
+        - keystore_reference
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.yourcompany.ai_chatbot
+      vars:
+        # Flutter & Dart
+        FLUTTER_VERSION: "3.24.3"
+        XCODE_WORKSPACE: "ios/Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
+        
+        # Firebase
+        FIREBASE_PROJECT_ID: "your-firebase-project-id"
+        
+        # API Keys (Add these as encrypted environment variables in Codemagic)
+        # OPENAI_API_KEY: "your-openai-api-key"
+        # GEMINI_API_KEY: "your-gemini-api-key"
+        # STRIPE_PUBLISHABLE_KEY: "your-stripe-publishable-key"
+        # STRIPE_SECRET_KEY: "your-stripe-secret-key"
+        
+        # App Store Connect
+        APP_ID: 1234567890 # Replace with your actual App Store Connect app ID
+        
+        # Google Play
+        PACKAGE_NAME: "com.yourcompany.ai_chatbot"
+        GOOGLE_PLAY_TRACK: "internal"
+        
+    triggering:
+      events:
+        - push
+        - tag
+        - pull_request
+      branch_patterns:
+        - pattern: develop
+          include: true
+          source: true
+        - pattern: main
+          include: true
+          source: true
+        - pattern: release/*
+          include: true
+          source: true
+    scripts:
+      - name: Set up local.properties for Android
+        script: |
+          echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
+          
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+          
+      - name: Install Firebase CLI
+        script: |
+          curl -sL https://firebase.tools | bash
+          
+      - name: Generate Firebase configuration files
+        script: |
+          # This assumes you have Firebase CLI configured with your project
+          # firebase use $FIREBASE_PROJECT_ID
+          # firebase apps:sdkconfig:download android --out=android/app/google-services.json
+          # firebase apps:sdkconfig:download ios --out=ios/Runner/GoogleService-Info.plist
+          echo "Firebase configuration files should be manually added to the repository"
+          
+      - name: Set up code signing identities for iOS
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files $APP_ID --type IOS_APP_STORE --create
+          keychain add-certificates
+          xcode-project use-profiles
+          
+      - name: Set up Android keystore
+        script: |
+          echo $CM_KEYSTORE | base64 --decode > /tmp/keystore.keystore
+          
+      - name: Build Flutter packages
+        script: |
+          flutter packages pub run build_runner build --delete-conflicting-outputs
+          
+      - name: Flutter analyze
+        script: |
+          flutter analyze
+          
+      - name: Flutter test
+        script: |
+          flutter test
+          
+      - name: Build APK
+        script: |
+          flutter build apk --release --build-name=1.0.$CM_BUILD_NUMBER --build-number=$CM_BUILD_NUMBER
+          
+      - name: Build AAB
+        script: |
+          flutter build appbundle --release --build-name=1.0.$CM_BUILD_NUMBER --build-number=$CM_BUILD_NUMBER
+          
+      - name: Build iOS
+        script: |
+          flutter build ipa --release --build-name=1.0.$CM_BUILD_NUMBER --build-number=$CM_BUILD_NUMBER --export-options-plist=/Users/builder/export_options.plist
+          
+    artifacts:
+      - build/**/outputs/**/*.apk
+      - build/**/outputs/**/*.aab
+      - build/**/outputs/**/mapping.txt
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+      
+    publishing:
+      # Email notifications
+      email:
+        recipients:
+          - your-email@example.com
+        notify:
+          success: true
+          failure: true
+          
+      # Slack notifications (optional)
+      # slack:
+      #   channel: '#builds'
+      #   notify_on_build_start: true
+      #   notify:
+      #     success: true
+      #     failure: true
+          
+      # Google Play Store publishing
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: $GOOGLE_PLAY_TRACK
+        submit_as_draft: true
+        
+      # App Store Connect publishing
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - App Store Connect Users
+        submit_to_app_store: false
+
+  # Development workflow for quick testing
+  flutter-dev:
+    name: Flutter Development Build
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      flutter: stable
+      vars:
+        FLUTTER_VERSION: "3.24.3"
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: develop
+          include: true
+          source: true
+        - pattern: feature/*
+          include: true
+          source: true
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+          
+      - name: Generate code
+        script: |
+          flutter packages pub run build_runner build --delete-conflicting-outputs
+          
+      - name: Flutter analyze
+        script: |
+          flutter analyze --no-congratulate
+          
+      - name: Flutter test
+        script: |
+          flutter test --coverage
+          
+      - name: Build APK (Debug)
+        script: |
+          flutter build apk --debug
+          
+    artifacts:
+      - build/**/outputs/**/*.apk
+      - coverage/lcov.info
+      
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
+        notify:
+          failure: true
+
+  # Release workflow
+  flutter-release:
+    name: Flutter Release Build
+    max_build_duration: 180
+    instance_type: mac_mini_m1
+    integrations:
+      app_store_connect: codemagic
+    environment:
+      android_signing:
+        - keystore_reference
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.yourcompany.ai_chatbot
+      vars:
+        FLUTTER_VERSION: "3.24.3"
+        XCODE_WORKSPACE: "ios/Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
+        APP_ID: 1234567890
+        PACKAGE_NAME: "com.yourcompany.ai_chatbot"
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*'
+          include: true
+    scripts:
+      - name: Set up local.properties
+        script: |
+          echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
+          
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+          
+      - name: Generate code
+        script: |
+          flutter packages pub run build_runner build --delete-conflicting-outputs
+          
+      - name: Set up code signing for iOS
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files $APP_ID --type IOS_APP_STORE --create
+          keychain add-certificates
+          xcode-project use-profiles
+          
+      - name: Build and publish to stores
+        script: |
+          # Extract version from tag
+          VERSION_NAME=${CM_TAG#v}
+          BUILD_NUMBER=$CM_BUILD_NUMBER
+          
+          # Build Android
+          flutter build appbundle --release --build-name=$VERSION_NAME --build-number=$BUILD_NUMBER
+          
+          # Build iOS
+          flutter build ipa --release --build-name=$VERSION_NAME --build-number=$BUILD_NUMBER --export-options-plist=/Users/builder/export_options.plist
+          
+    artifacts:
+      - build/**/outputs/**/*.aab
+      - build/ios/ipa/*.ipa
+      
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: production
+        submit_as_draft: false
+        
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: false
+        submit_to_app_store: true
