@@ -11,15 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout الكود
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. إزالة أي نسخة Flutter قديمة على الـ runner (لتجنب مشاكل الكاش)
       - name: Remove old Flutter
         run: sudo rm -rf /opt/hostedtoolcache/flutter
 
-      # 3. Setup Flutter 3.27.3 stable (يأتي مع Dart 3.8.1)
       - name: Setup Flutter (3.27.3 stable)
         uses: subosito/flutter-action@v2
         with:
@@ -27,31 +24,25 @@ jobs:
           channel: 'stable'
           cache: false
 
-      # 4. التحقق من النسخ فعليًا
       - name: Verify Flutter & Dart versions
         run: |
           flutter --version
           dart --version
 
-      # 5. تنزيل dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # 6. توليد ملفات JSON serialization
       - name: Generate JSON serialization files
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
-      # 7. Build APK
       - name: Build APK
         run: flutter build apk --release
 
-      # 8. Build AppBundle (AAB)
       - name: Build AppBundle (AAB)
         run: flutter build appbundle --release
 
-      # 9. رفع الـ APK و AAB كـ Artifacts (اختياري)
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: flutter-build
           path: |
