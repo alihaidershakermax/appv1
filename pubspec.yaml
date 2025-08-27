@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.0   # 👈 لازم تحدث Flutter/Dart حتى تصير >= 3.8
+  sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -83,7 +83,7 @@ dev_dependencies:
   build_runner: ^2.4.13
   riverpod_generator: ^2.6.5
   json_serializable: ^6.8.0
-  retrofit_generator: ^10.0.2   # 👈 يحتاج Dart >= 3.8
+  retrofit_generator: ^9.1.5    # 👈 نسخة متوافقة مع riverpod_generator
   custom_lint: ^0.5.7
   riverpod_lint: ^2.3.7
 
