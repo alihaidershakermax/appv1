@@ -9,6 +9,9 @@ on:
 jobs:
   android_build:
     runs-on: ubuntu-latest
+    env:
+      FLUTTER_ROOT: ${{ github.workspace }}/flutter
+      PATH: ${{ github.workspace }}/flutter/bin:${{ github.workspace }}/flutter/bin/cache/dart-sdk/bin:${PATH}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -16,13 +19,10 @@ jobs:
       - name: Remove old Flutter
         run: sudo rm -rf /opt/hostedtoolcache/flutter
 
-      - name: Install Flutter 3.27.3 manually
+      - name: Install Flutter 3.27.3
         run: |
           wget https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.27.3-stable.tar.xz
-          tar xf flutter_linux_3.27.3-stable.tar.xz
-
-      - name: Add Flutter to PATH
-        run: echo "$PWD/flutter/bin" >> $GITHUB_PATH
+          tar xf flutter_linux_3.27.3-stable.tar.xz -C ${{ github.workspace }}
 
       - name: Verify Flutter & Dart versions
         run: |
@@ -52,6 +52,9 @@ jobs:
   ios_build:
     runs-on: macos-latest
     if: github.event_name != 'pull_request' # خيار: لا يبني iOS على PR
+    env:
+      FLUTTER_ROOT: ${{ github.workspace }}/flutter
+      PATH: ${{ github.workspace }}/flutter/bin:${{ github.workspace }}/flutter/bin/cache/dart-sdk/bin:${PATH}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -59,13 +62,10 @@ jobs:
       - name: Remove old Flutter
         run: sudo rm -rf /opt/hostedtoolcache/flutter
 
-      - name: Install Flutter 3.27.3 manually
+      - name: Install Flutter 3.27.3
         run: |
           wget https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_3.27.3-stable.zip
-          unzip flutter_macos_3.27.3-stable.zip
-
-      - name: Add Flutter to PATH
-        run: echo "$PWD/flutter/bin" >> $GITHUB_PATH
+          unzip flutter_macos_3.27.3-stable.zip -d ${{ github.workspace }}
 
       - name: Verify Flutter & Dart versions
         run: |
